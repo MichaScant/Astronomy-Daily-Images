@@ -29,7 +29,7 @@ export default class Display extends React.Component<any,any> {
             })
             .then(data => {
                 this.setState({
-                    imgData: data,
+                    imgData: data.reverse(),
                     hasData: true,
                 });
 
@@ -50,7 +50,7 @@ export default class Display extends React.Component<any,any> {
         } else {
             return (
                 <Layout sectioned = {true}>
-                    {imgData.reverse().map((image : any) => (
+                    {imgData.map((image : any) => (
                         <div>
                         <div className = "card">
                         <Layout.Section>
