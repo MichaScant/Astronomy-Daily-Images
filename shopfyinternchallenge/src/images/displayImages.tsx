@@ -23,7 +23,7 @@ export default class Display extends React.Component<any,any> {
     }
 
     componentDidMount() {
-        fetch("https://api.nasa.gov/planetary/apod?start_date=2022-01-15&end_date=2022-01-18&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
+        fetch("https://api.nasa.gov/planetary/apod?start_date=2022-01-15&end_date=2022-01-19&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
             .then(reply => {
                 return reply.json();
             })
@@ -40,7 +40,7 @@ export default class Display extends React.Component<any,any> {
 
     render() {
         const {imgData, hasData, likes, liked} = this.state;
-        for (var i = 0; i < imgData.length; i++) {
+        for (var i = imgData.length-1; i >= 0; i--) {
             likes.push(0);
             liked.push(false);
         }
@@ -50,8 +50,7 @@ export default class Display extends React.Component<any,any> {
         } else {
             return (
                 <Layout sectioned = {true}>
-                    {imgData.map((image : any) => (
-                        
+                    {imgData.reverse().map((image : any) => (
                         <div>
                         <div className = "card">
                         <Layout.Section>
@@ -80,7 +79,7 @@ export default class Display extends React.Component<any,any> {
                                         l1[index] = true;
                                         l2[index] += 1;
 
-                                                                                this.setState({
+                                        this.setState({
                                             likes : l2,
                                             liked : l1,
                                         });
