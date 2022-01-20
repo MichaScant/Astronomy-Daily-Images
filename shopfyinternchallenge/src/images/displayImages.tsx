@@ -23,7 +23,12 @@ export default class Display extends React.Component<any,any> {
     }
 
     componentDidMount() {
-        fetch("https://api.nasa.gov/planetary/apod?start_date=2022-01-15&end_date=2022-01-19&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
+        var date = new Date();
+        var day = String(date.getDate()).padStart(3,'-0');
+        var month = String(date.getMonth() + 1).padStart(3,'-0');
+        var year = String(date.getFullYear())
+
+        fetch("https://api.nasa.gov/planetary/apod?start_date=2022-01-15&end_date=" + year + month + day+ "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
             .then(reply => {
                 return reply.json();
             })
