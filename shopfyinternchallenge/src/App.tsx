@@ -9,7 +9,7 @@ function App() {
 
     <div className="App">
       <header className="App-header">
-        <h1>Welcome to Nasa's Astronomy showcase</h1>
+        <h1>Welcome to Nasa's Astronomy showcase Version 2.0</h1>
         <h3>Presenting Nasa's Picture of the day</h3>
         <Display/>
       </header>

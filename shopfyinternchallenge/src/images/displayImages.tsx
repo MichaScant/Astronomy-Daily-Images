@@ -45,6 +45,7 @@ export default class Display extends React.Component<any,any> {
 
     render() {
         const {imgData, hasData, likes, liked} = this.state;
+        
         for (var i = imgData.length-1; i >= 0; i--) {
             likes.push(0);
             liked.push(false);
@@ -60,7 +61,7 @@ export default class Display extends React.Component<any,any> {
                         <div className = "card">
                         <Layout.Section>
                         <MediaCard
-                            title = {"Picture of the day of " + image.date}
+                            title = {"Picture of the day on " + image.date}
                             primaryAction={{
                                 icon: (!likes[imgData.indexOf(image)]) ? ThumbsUpMinor : ThumbsDownMinor,
                                 content: "Likes: " + likes[imgData.indexOf(image)],
@@ -77,6 +78,7 @@ export default class Display extends React.Component<any,any> {
                                             likes : l2,
                                             liked : l1,
                                         });
+
                                     } else {
                                         const l1 = liked;
                                         const l2 = likes;
