@@ -28,7 +28,7 @@ export default class Display extends React.Component<any,any> {
         var month = String(date.getMonth() + 1).padStart(3,'-0');
         var year = String(date.getFullYear())
 
-        fetch("https://api.nasa.gov/planetary/apod?start_date=2023-01-01&end_date=" + year + month + day+ "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
+        fetch("https://api.nasa.gov/planetary/apod?start_date=" + year + String(date.getMonth() + 1 === 1 ? 12 : date.getMonth()).padStart(3,'-0') + day + "&end_date=" + year + month + day+ "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez")
             .then(reply => {
                 return reply.json();
             })
