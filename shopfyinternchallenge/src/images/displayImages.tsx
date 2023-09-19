@@ -31,7 +31,7 @@ export default class Display extends React.Component<any,any> {
         var startMonth = endMonth;
 
         if (date.getMonth() + 1 === 1 ) {
-            startMonth = String(12);
+            startMonth = String(12).padStart(3,'-0');
             startYear = String(date.getFullYear() - 1);
         } else {
             startMonth = String(date.getMonth()).padStart(3,'-0')
