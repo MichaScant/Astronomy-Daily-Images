@@ -1,0 +1,135 @@
+@use '@carbon/react/scss/components/search';
+
+.background {
+    max-height: 100rem;
+    overflow: scroll;
+    border-radius: 2rem;
+    padding: 3rem;
+    display: flex;
+    background-color: dimgray;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width: 80%;
+}
+
+.searchConstraints {
+    max-width: 50rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+}
+
+.image {
+    min-width: 100%;
+    width: 100%;
+    margin: auto;
+}
+
+.imageGrouping {
+    display: flex;
+    height: 350px;
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 2rem;
+    object-fit: contain !important;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+}
+
+.likesComponent {
+    color: white;
+    width: 4rem;
+    height: 5rem;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.likedIcon {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cardGroup {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    max-width: 300px;
+    height: 40rem;
+    overflow: scroll;
+    width: 100%;
+    padding: 5rem;
+    margin: 2rem;
+    background-color: #282c34;
+    margin-bottom: 4rem;
+    border-radius: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Polaris-Icon {
+    max-width: 4rem !important;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Polaris-Button {
+    padding-bottom: 11px;
+    max-width: 5.5rem;
+    width: 100%;
+    background-color: white;
+}
+
+.Polaris-Stack__Item, .Polaris-MediaCard__MediaContainer.Polaris-MediaCard--portrait.Polaris-MediaCard--sizeSmall {
+    line-height: 32px;
+    font-size: 20px;
+    max-width: 500px;
+}
+
+.Polaris-Heading {
+    font-size: 28px;
+}
+
+p.description {
+    width: 500px;
+    text-align: center;
+    margin: auto;
+}
+
+.likeBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.info {
+    border: 2px solid red;
+    border-radius: 3px;
+    display: flex;
+    cursor: pointer;
+}
+
+.like {
+    height: 60px;
+    width: 60px;
+    background: url("like.png");
+    position: absolute;
+}
+
+.subTitle {
+    margin-bottom: 8rem;
+}
