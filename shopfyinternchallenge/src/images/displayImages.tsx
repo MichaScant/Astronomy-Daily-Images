@@ -1,12 +1,17 @@
-import React, {useState, useEffect, useRef} from "react";
+import React, {useState, useEffect, useRef, useCallback, Dispatch, SetStateAction} from "react";
 
 import { endianness } from "os";
 import {Layout, MediaCard} from '@shopify/polaris'
+
+
+
 import './_displayImages.scss';
 import {
     CircleUpIcon,
     CircleDownIcon
   } from '@shopify/polaris-icons';
+
+import fs from 'fs'
 
 import {
     Favorite,
@@ -14,13 +19,18 @@ import {
 } from '@carbon/icons-react'
 
 import {
-    Search
+    Search,
+    DatePicker,
+    DatePickerInput,
+    Tabs,
+    Tab,
+    TabPanels,
+    TabPanel
 } from '@carbon/react'
 
 import { RotatingLines } from "react-loader-spinner";
 
-
-interface nasaJsonData {
+export interface nasaJsonData {
   copyright:  String
   date: String
   explanation: String
@@ -31,26 +41,33 @@ interface nasaJsonData {
   url: String
 }
 
-interface imageData {
+export interface imageData {
     id : number
     nasaData : nasaJsonData
     showDescription : boolean
     likes : number
     liked : boolean
 }
-interface nasaDataSet {
+
+export interface displayImagesProps {
+    favourites: imageData[];
+    setFavourites: React.Dispatch<React.SetStateAction<imageData[]>>
+};
+
+export interface nasaDataSet {
     imgData : imageData[]
     hasData : boolean
 }   
 
-interface date {
-    year : number,
+export interface date {
+    day : number,
     month: number,
-    day : number
+    year : number,
 }
 
-const DisplayImages = () : JSX.Element => {
-
+const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => {
+    var _ = require('lodash');
+    
     const [loading, setLoading] = useState<boolean>(false);
     const backgroundRef = useRef<HTMLDivElement>(null);
     
@@ -69,80 +86,119 @@ const DisplayImages = () : JSX.Element => {
         year: new Date().getFullYear()
     })
 
+    const [maxStartDate, setMaxStartDate] = useState<date | undefined>(undefined)
+
     const [startDate, setStartDate] = useState<date>({
         day : endDate.day,
         month: endDate.month,
         year: endDate.year
     })
 
-    const fetchMoreData = async() => {
-        setLoading(true);
+    const observerTarget = useRef<HTMLDivElement>(null);
 
+    const fetchMoreData = async() => {
         const deductor = 4;
 
         var currentStartDate : date = {
             ...startDate
         }
 
-        if (startDate.month === 1 && startDate.day - deductor <= 0) {
-            updateStartDate({
-                ...startDate,
-                month : 12,
-                year : startDate.year - 1,
-                day : new Date(startDate.year - 1, 12, 0).getDate() + (startDate.day - deductor)
-            })
 
-            currentStartDate = {
-                ...startDate,
-                month : 12,
-                year : startDate.year - 1,
-                day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+        if (startDate.month === 1 && startDate.day - deductor <= 0) {
+            if (maxStartDate != undefined && new Date(startDate.year - 1, 12, 31 + startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+                updateStartDate({
+                    ...maxStartDate,
+                })
+    
+                currentStartDate = {
+                    ...maxStartDate,
+                }
+            } else {
+                updateStartDate({
+                    ...startDate,
+                    month : 12,
+                    year : startDate.year - 1,
+                    day : new Date(startDate.year - 1, 12, 0).getDate() + (startDate.day - deductor)
+                })
+
+                currentStartDate = {
+                    ...startDate,
+                    month : 12,
+                    year : startDate.year - 1,
+                    day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+                }
             }
         } else if (startDate.day - deductor <= 0) {
-            updateStartDate({
-                ...startDate,
-                month : startDate.month - 1,
-                day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
-            })
+            const numOfDaysInMonth = new Date(startDate.year, startDate.month - 1, 0).getDate()
 
-            currentStartDate = {
-                ...startDate,
-                month : startDate.month - 1,
-                day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+            if (maxStartDate != undefined && new Date(startDate.year, startDate.month - 1, numOfDaysInMonth + startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+                updateStartDate({
+                    ...maxStartDate,
+                })
+    
+                currentStartDate = {
+                    ...maxStartDate,
+                }
+            } else {
+                updateStartDate({
+                    ...startDate,
+                    month : startDate.month - 1,
+                    day : numOfDaysInMonth + (startDate.day - deductor)
+                })
+
+                currentStartDate = {
+                    ...startDate,
+                    month : startDate.month - 1,
+                    day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+                }
             }
         } else {
-            updateStartDate({
-                ...startDate,
-                day : startDate.day - deductor
-            })
+            if (maxStartDate != undefined && new Date(startDate.year, startDate.month, startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+                updateStartDate({
+                    ...maxStartDate,
+                })
+    
+                currentStartDate = {
+                    ...maxStartDate,
+                }
+            } else {
+                updateStartDate({
+                    ...startDate,
+                    day : startDate.day - deductor
+                })
 
-            currentStartDate = {
-                ...startDate,
-                day : startDate.day - deductor         
+                currentStartDate = {
+                    ...startDate,
+                    day : startDate.day - deductor         
+                }
             }
         }
 
-        const response = await fetch("https://api.nasa.gov/planetary/apod?start_date=" + String(currentStartDate.year) + String(currentStartDate.month).padStart(3,'-0') + String(currentStartDate.day).padStart(3,'-0') + "&end_date=" + String(endDate.year) + String(endDate.month).padStart(3,'-0') + String(endDate.day).padStart(3,'-0') + "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez");
-        const newData : nasaJsonData[] = await response.json();
+        try {
+            const response = await fetch("https://api.nasa.gov/planetary/apod?start_date=" + String(currentStartDate.year) + String(currentStartDate.month).padStart(3,'-0') + String(currentStartDate.day).padStart(3,'-0') + "&end_date=" + String(endDate.year) + String(endDate.month).padStart(3,'-0') + String(endDate.day).padStart(3,'-0') + "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez");
+            const newData : nasaJsonData[] = await response.json();
 
-        const dataCardInfo : imageData[] = [];
-        var counterId = state.imgData.length;
-        newData.forEach((image : nasaJsonData) => {
-            dataCardInfo.push({
-                id : counterId,
-                showDescription: false,
-                nasaData : image,
-                liked : false,
-                likes : 0
+            const dataCardInfo : imageData[] = [];
+            var counterId = state.imgData.length;
+            newData.forEach((image : nasaJsonData) => {
+                dataCardInfo.push({
+                    id : counterId,
+                    showDescription: false,
+                    nasaData : image,
+                    liked : false,
+                    likes : 0
+                })
+                counterId += 1;
             })
-            counterId += 1;
-    })
 
-        setEndDate({year : currentStartDate.year, month : currentStartDate.month, day : currentStartDate.day - 1});
+            setEndDate({year : currentStartDate.year, month : currentStartDate.month, day : currentStartDate.day - 1});
 
-        updateData({imgData : dataCardInfo.reverse(), hasData: true});
-
-        setLoading(false);
+            updateData({imgData : dataCardInfo.reverse(), hasData: true});
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {
@@ -150,13 +206,36 @@ const DisplayImages = () : JSX.Element => {
     }, []);
 
     useEffect(() => {
-        if (backgroundRef.current != null) {
-            backgroundRef.current.addEventListener('scroll', handleScroll);
-            return () => window.removeEventListener('scroll', handleScroll);
-        }
-      }, [loading]);
+        if (loading) return;
 
-    var loadingCurrent = loading
+        const observer = new IntersectionObserver(
+            entries => {
+              if (entries[0].isIntersecting && !(_.isEqual(maxStartDate, startDate))) {
+                fetchMoreData();
+                setLoading(true);
+              }
+            },
+            { threshold: 1 }
+          );
+
+        if (observerTarget.current !== null) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        }
+
+      }, [observerTarget.current, loading, maxStartDate]);
+      
+
+    useEffect(() => {
+        if (!loading) {
+            setDataDisplayed([...dataDisplayed, ...state.imgData]);
+        }
+    }, [loading, state])
 
     const updateStartDate = (props : date) => {
         setStartDate({
@@ -172,7 +251,6 @@ const DisplayImages = () : JSX.Element => {
             imgData : [...state.imgData, ...props.imgData],
             hasData : props.hasData
         })
-        setDataDisplayed([...dataDisplayed, ...props.imgData])
     }
 
     const updateLikes = (props : imageData) => {
@@ -187,20 +265,44 @@ const DisplayImages = () : JSX.Element => {
             ...state,
             imgData: dataset
         })
-    }
-
-    const handleScroll = () => {
-        if ((backgroundRef.current != null && !(backgroundRef.current.scrollHeight - backgroundRef.current.clientHeight - backgroundRef.current.scrollTop < 1)) || loading || loadingCurrent) {
-            return;
-        } else {
-            loadingCurrent = true;
+        
+        const newFavourite = dataset[index]
+        const favouriteIndex = displayFavourites.favourites.findIndex(x => x.id == props.id);
+        if (newFavourite != undefined && props.liked === true) {
+            displayFavourites.setFavourites([...displayFavourites.favourites, newFavourite]);
+        } else if ((newFavourite != undefined && favouriteIndex !== -1)) {
+            const favouriteArray = displayFavourites.favourites;
+            favouriteArray.splice(favouriteIndex, 1);
+            displayFavourites.setFavourites([...favouriteArray]);
         }
 
-        fetchMoreData();
+        //favouritesData = [...favouritesData, ]
     }
 
-    const filterNasaData = (title : string) => {
-        
+    const updateMaxStartDate = (event : Date[]) => {
+        if (event.length == 2) {
+            setDataDisplayed([])
+            setState({
+                ...state,
+                imgData : []
+            })
+            setEndDate({
+                year : event[1].getFullYear(),
+                month: event[1].getMonth() + 1,
+                day : event[1].getDate()
+            })
+            setStartDate({
+                year : event[1].getFullYear(),
+                month: event[1].getMonth() + 1,
+                day : event[1].getDate()
+            })
+
+            setMaxStartDate({
+                year : event[0].getFullYear(),
+                month: event[0].getMonth() + 1,
+                day : event[0].getDate()
+            })
+        }
     }
 
     if (!state.hasData) {
@@ -212,14 +314,34 @@ const DisplayImages = () : JSX.Element => {
                     <div className='searchConstraints'>
                         <Search
                             size='md'
-                            placeholder="Search for messages"
+                            placeholder="Search by Title"
                             defaultValue = ""
-                            labelText = "Search"
+                            labelText = "Title"
                             onChange={(event) => {
                                 setSearchValue(event.target.value);
                             }}
                         />
-                        
+                    </div>
+                    <div className="filterByDates">
+                    <DatePicker
+                        datePickerType="range"
+                        onChange={(event) => {
+                            updateMaxStartDate(event);
+                        }}
+                    >
+                            <DatePickerInput
+                                id="date-picker-start"
+                                labelText="Start Date"
+                                placeholder="mm/dd/yyyy"
+                            />
+
+                            <DatePickerInput
+                                id="date-picker-end"
+                                labelText="End Date"
+                                onChange={function noRefCheck(){}}
+                                placeholder="mm/dd/yyyy"
+                            />
+                    </DatePicker>
                     </div>
                     <div className="cardGroup">
                         {state.imgData.filter(x => x.nasaData.title.includes(String(searchValue))).map((image : imageData) => (
@@ -306,6 +428,7 @@ const DisplayImages = () : JSX.Element => {
                         ))}
                     </div>
                 </Layout>
+                <div className = "observer" ref={observerTarget}><br/></div>
                 <br/>
 
                 {loading && 

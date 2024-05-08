@@ -1,4 +1,6 @@
 @use '@carbon/react/scss/components/search';
+@use '@carbon/react/scss/components/date-picker';
+@use '@carbon/react/scss/components/tabs';
 
 .background {
     max-height: 100rem;
@@ -11,6 +13,25 @@
     flex-wrap: wrap;
     flex-direction: row;
     width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cds--date-picker-container {
+    padding-left: 4rem;
+    padding-right: 4rem;
+    margin-bottom: 2rem;
+}
+
+label.cds--label {
+    color: white !important;
+}
+
+.cds--date-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-self: center;
+    justify-content: center;
 }
 
 .searchConstraints {
@@ -90,7 +111,15 @@
     padding-bottom: 11px;
     max-width: 5.5rem;
     width: 100%;
-    background-color: white;
+    background-color: #282c34;
+}
+
+svg.Polaris-Icon__Svg {
+    fill: white;
+}
+
+span.Polaris-Button__Text {
+    color: white;
 }
 
 .Polaris-Stack__Item, .Polaris-MediaCard__MediaContainer.Polaris-MediaCard--portrait.Polaris-MediaCard--sizeSmall {
@@ -131,5 +160,5 @@ p.description {
 }
 
 .subTitle {
-    margin-bottom: 8rem;
+    margin-bottom: 4rem;
 }
