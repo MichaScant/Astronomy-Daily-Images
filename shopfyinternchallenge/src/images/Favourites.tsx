@@ -22,7 +22,7 @@ import {
     DatePickerInput,
 } from '@carbon/react'
 
-import { date, nasaDataSet, displayImagesProps, imageData, nasaJsonData } from "./DisplayImages";
+import { date, nasaDataSet, displayImagesProps, imageData, nasaJsonData } from "./displayImages";
 import { RotatingLines } from "react-loader-spinner";
 
 

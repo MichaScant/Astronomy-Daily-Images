@@ -1,8 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import DisplayImages from './images/DisplayImages';
-import { imageData } from './images/DisplayImages';
+import DisplayImages from './images/displayImages';
+import { imageData } from './images/displayImages';
 import Favorites from './images/Favourites';
 
 import {
