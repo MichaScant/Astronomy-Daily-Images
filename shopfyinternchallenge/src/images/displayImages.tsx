@@ -1,17 +1,12 @@
 import React, {useState, useEffect, useRef, useCallback, Dispatch, SetStateAction} from "react";
 
-import { endianness } from "os";
 import {Layout, MediaCard} from '@shopify/polaris'
-
-
 
 import './_displayImages.scss';
 import {
     CircleUpIcon,
     CircleDownIcon
   } from '@shopify/polaris-icons';
-
-import fs from 'fs'
 
 import {
     Favorite,
@@ -21,11 +16,7 @@ import {
 import {
     Search,
     DatePicker,
-    DatePickerInput,
-    Tabs,
-    Tab,
-    TabPanels,
-    TabPanel
+    DatePickerInput
 } from '@carbon/react'
 
 import { RotatingLines } from "react-loader-spinner";
@@ -103,7 +94,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             ...startDate
         }
 
-
+        //calculates how far back start date should be set to account for the need to load more nasa data
         if (startDate.month === 1 && startDate.day - deductor <= 0) {
             if (maxStartDate != undefined && new Date(startDate.year - 1, 12, 31 + startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
                 updateStartDate({
@@ -178,6 +169,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             const response = await fetch("https://api.nasa.gov/planetary/apod?start_date=" + String(currentStartDate.year) + String(currentStartDate.month).padStart(3,'-0') + String(currentStartDate.day).padStart(3,'-0') + "&end_date=" + String(endDate.year) + String(endDate.month).padStart(3,'-0') + String(endDate.day).padStart(3,'-0') + "&api_key=5PKABlsVOYRzfFMBH7L8U9YeI9TabH2b4KD3rFez");
             const newData : nasaJsonData[] = await response.json();
 
+            //creates general stucture for each nasa data to help track the amount of likes per picture and provide unique identifiers
             const dataCardInfo : imageData[] = [];
             var counterId = state.imgData.length;
             newData.forEach((image : nasaJsonData) => {
@@ -201,10 +193,13 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
         }
     }
 
+    //initializes the first data retrevial
     useEffect(() => {
         fetchMoreData();
     }, []);
 
+    //Infinite loading: monitores when the user scrolls down all the way and loads more data if available
+    //Availability is based on filters
     useEffect(() => {
         if (loading) return;
 
@@ -266,6 +261,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             imgData: dataset
         })
         
+        //removes from favoruites if image is unliked
         const newFavourite = dataset[index]
         const favouriteIndex = displayFavourites.favourites.findIndex(x => x.id == props.id);
         if (newFavourite != undefined && props.liked === true) {
@@ -275,11 +271,9 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             favouriteArray.splice(favouriteIndex, 1);
             displayFavourites.setFavourites([...favouriteArray]);
         }
-
-        //favouritesData = [...favouritesData, ]
     }
 
-    const updateMaxStartDate = (event : Date[]) => {
+    const updateDates = (event : Date[]) => {
         if (event.length == 2) {
             setDataDisplayed([])
             setState({
@@ -326,7 +320,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                     <DatePicker
                         datePickerType="range"
                         onChange={(event) => {
-                            updateMaxStartDate(event);
+                            updateDates(event);
                         }}
                     >
                             <DatePickerInput

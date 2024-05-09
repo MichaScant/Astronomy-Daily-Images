@@ -1,6 +1,5 @@
-import React, {useState, useEffect, useRef, Dispatch, SetStateAction} from "react";
+import React, {useState, useEffect} from "react";
 
-import { endianness } from "os";
 import {Layout, MediaCard} from '@shopify/polaris'
 
 import './_displayImages.scss';
@@ -9,7 +8,6 @@ import {
     CircleDownIcon
   } from '@shopify/polaris-icons';
 
-import fs from 'fs'
 
 import {
     Favorite,
@@ -22,23 +20,18 @@ import {
     DatePickerInput,
 } from '@carbon/react'
 
-import { date, nasaDataSet, displayImagesProps, imageData, nasaJsonData } from "./displayImages";
-import { RotatingLines } from "react-loader-spinner";
+import { date, displayImagesProps, imageData } from "./displayImages";
 
 
 const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
 
-    /*const [loading, setLoading] = useState<boolean>(false);
-    const backgroundRef = useRef<HTMLDivElement>(null);*/
     const [searchValue, setSearchValue] = useState<String>("");
 
     const [dataDisplayed, setDataDisplayed] = useState<imageData[]>(displayFavourites.favourites);
 
     const [endDate, setEndDate] = useState<date | undefined>(undefined);
-    //const endDateRef = useRef(endDate);
 
     const [startDate, setStartDate] = useState<date | undefined>(undefined);
-    //const startDateRef = useRef(startDate);
     
     useEffect(() => {
         setDataDisplayed(displayFavourites.favourites);
@@ -46,6 +39,7 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
 
     useEffect(() => {     
         if (startDate !== undefined && endDate !== undefined) {
+            //filters out nasa images between specified dates
             const newFavourites = displayFavourites.favourites.filter((
                 data => (
                     new Date(String(data.nasaData.date)) >= new Date(startDate.year, startDate.month,startDate.day) &&
@@ -75,9 +69,9 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
         setDataDisplayed(datasetDisplayed);
         displayFavourites.setFavourites(dataset);
         
+        //removes from favorites if unliked
         const newFavourite = dataset[indexData];
         const favouriteIndex = displayFavourites.favourites.findIndex(x => x.id == props.id);
-        
         if ((newFavourite != undefined && favouriteIndex !== -1)) {
             const favouriteArray = displayFavourites.favourites;
             favouriteArray.splice(favouriteIndex, 1);
@@ -89,12 +83,12 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
         if (event.length == 2) {
             setEndDate({
                 year : event[1].getFullYear(),
-                month: event[1].getMonth() + 1,
+                month: event[1].getMonth(),
                 day : event[1].getDate()
             })
             setStartDate({
                 year : event[0].getFullYear(),
-                month: event[0].getMonth() + 1,
+                month: event[0].getMonth(),
                 day : event[0].getDate()
             })
         }
