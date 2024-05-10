@@ -33,9 +33,21 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
 
     const [startDate, setStartDate] = useState<date | undefined>(undefined);
     
+
     useEffect(() => {
-        setDataDisplayed(displayFavourites.favourites);
-    }, [displayFavourites.favourites]);
+        if (searchValue !== "" && displayFavourites.favourites.length > 0) {
+
+            const delaySearch = setTimeout(() => {
+                console.log("Searching for " + searchValue)
+                setDataDisplayed(dataDisplayed.filter((x: imageData) => x.nasaData.title.toLowerCase().includes(String(searchValue).toLowerCase())))
+            }, 1000)
+            
+            return () => clearTimeout(delaySearch)
+        } else {
+            setDataDisplayed(displayFavourites.favourites);
+        }
+        
+    }, [displayFavourites.favourites, searchValue])
 
     useEffect(() => {     
         if (startDate !== undefined && endDate !== undefined) {

@@ -61,6 +61,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
     
     const [loading, setLoading] = useState<boolean>(false);
     const backgroundRef = useRef<HTMLDivElement>(null);
+    const [overflowHandler, setOverflowHandler] = useState("hidden")
     
     const [state, setState] = useState<nasaDataSet>({
         imgData : [],
@@ -68,6 +69,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
     });
 
     const [searchValue, setSearchValue] = useState<String>("");
+    const [isSearching, setIsSearching] = useState<boolean>(false);
 
     const [dataDisplayed, setDataDisplayed] = useState<imageData[]>([]);
 
@@ -88,15 +90,15 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
     const observerTarget = useRef<HTMLDivElement>(null);
 
     const fetchMoreData = async() => {
-        const deductor = 4;
+        const deductor = 5;
 
         var currentStartDate : date = {
             ...startDate
         }
 
         //calculates how far back start date should be set to account for the need to load more nasa data
-        if (startDate.month === 1 && startDate.day - deductor <= 0) {
-            if (maxStartDate != undefined && new Date(startDate.year - 1, 12, 31 + startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+        if (endDate.month === 1 && endDate.day - deductor <= 0) {
+            if (maxStartDate != undefined && new Date(endDate.year - 1, 12, 31 + endDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
                 updateStartDate({
                     ...maxStartDate,
                 })
@@ -106,23 +108,23 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                 }
             } else {
                 updateStartDate({
-                    ...startDate,
+                    ...endDate,
                     month : 12,
-                    year : startDate.year - 1,
-                    day : new Date(startDate.year - 1, 12, 0).getDate() + (startDate.day - deductor)
+                    year : endDate.year - 1,
+                    day : new Date(endDate.year - 1, 12, 0).getDate() + (endDate.day - deductor)
                 })
 
                 currentStartDate = {
-                    ...startDate,
+                    ...endDate,
                     month : 12,
-                    year : startDate.year - 1,
-                    day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+                    year : endDate.year - 1,
+                    day : new Date(endDate.year, endDate.month - 1, 0).getDate() + (endDate.day - deductor)
                 }
             }
-        } else if (startDate.day - deductor <= 0) {
-            const numOfDaysInMonth = new Date(startDate.year, startDate.month - 1, 0).getDate()
+        } else if (endDate.day - deductor <= 0) {
+            const numOfDaysInMonth = new Date(endDate.year, endDate.month - 1, 0).getDate()
 
-            if (maxStartDate != undefined && new Date(startDate.year, startDate.month - 1, numOfDaysInMonth + startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+            if (maxStartDate != undefined && new Date(endDate.year, endDate.month - 1, numOfDaysInMonth + endDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
                 updateStartDate({
                     ...maxStartDate,
                 })
@@ -132,19 +134,19 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                 }
             } else {
                 updateStartDate({
-                    ...startDate,
-                    month : startDate.month - 1,
-                    day : numOfDaysInMonth + (startDate.day - deductor)
+                    ...endDate,
+                    month : endDate.month - 1,
+                    day : numOfDaysInMonth + (endDate.day - deductor)
                 })
 
                 currentStartDate = {
-                    ...startDate,
-                    month : startDate.month - 1,
-                    day : new Date(startDate.year, startDate.month - 1, 0).getDate() + (startDate.day - deductor)
+                    ...endDate,
+                    month : endDate.month - 1,
+                    day : new Date(endDate.year, endDate.month - 1, 0).getDate() + (endDate.day - deductor)
                 }
             }
         } else {
-            if (maxStartDate != undefined && new Date(startDate.year, startDate.month, startDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
+            if (maxStartDate != undefined && new Date(endDate.year, endDate.month, endDate.day - deductor) < new Date(maxStartDate.year, maxStartDate.month, maxStartDate.day)) {
                 updateStartDate({
                     ...maxStartDate,
                 })
@@ -154,13 +156,13 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                 }
             } else {
                 updateStartDate({
-                    ...startDate,
-                    day : startDate.day - deductor
+                    ...endDate,
+                    day : endDate.day - deductor
                 })
 
                 currentStartDate = {
-                    ...startDate,
-                    day : startDate.day - deductor         
+                    ...endDate,
+                    day : endDate.day - deductor         
                 }
             }
         }
@@ -182,10 +184,18 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                 })
                 counterId += 1;
             })
-
-            setEndDate({year : currentStartDate.year, month : currentStartDate.month, day : currentStartDate.day - 1});
+            if ( currentStartDate.day - 1 != 0) {
+                setEndDate({year : currentStartDate.year, month : currentStartDate.month, day : currentStartDate.day - 1});
+            } else if (currentStartDate.month == 1) {
+                const newDay = new Date(currentStartDate.year - 1, 12, 0).getDate()
+                setEndDate({year : currentStartDate.year - 1, month : 12, day : newDay});
+            } else {
+                const newDay = new Date(currentStartDate.year, currentStartDate.month - 1, 0).getDate()
+                setEndDate({year : currentStartDate.year, month : currentStartDate.month - 1, day : newDay});
+            }   
 
             updateData({imgData : dataCardInfo.reverse(), hasData: true});
+
         } catch (error) {
             console.log(error);
         } finally {
@@ -198,16 +208,16 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
         fetchMoreData();
     }, []);
 
+
     //Infinite loading: monitores when the user scrolls down all the way and loads more data if available
     //Availability is based on filters
     useEffect(() => {
         if (loading) return;
-
         const observer = new IntersectionObserver(
             entries => {
-              if (entries[0].isIntersecting && !(_.isEqual(maxStartDate, startDate))) {
-                fetchMoreData();
+              if (entries[0].isIntersecting && !(_.isEqual(maxStartDate, startDate)) && !loading && !isSearching) {
                 setLoading(true);
+                fetchMoreData();
               }
             },
             { threshold: 1 }
@@ -228,9 +238,24 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
 
     useEffect(() => {
         if (!loading) {
-            setDataDisplayed([...dataDisplayed, ...state.imgData]);
+
+            if (isSearching) {
+                const delaySearch = setTimeout(() => {
+                    console.log("Searching for " + searchValue)
+                    
+                    if (searchValue === "") {
+                      setDataDisplayed(state.imgData);
+                    } else {
+                      setDataDisplayed(dataDisplayed.filter((x: imageData) => x.nasaData.title.toLowerCase().includes(String(searchValue).toLowerCase())))
+                    }
+                  }, 1000)
+              
+                  return () => clearTimeout(delaySearch)
+            } else {
+                setDataDisplayed(state.imgData);
+            }
         }
-    }, [loading, state])
+    }, [loading, state, searchValue])
 
     const updateStartDate = (props : date) => {
         setStartDate({
@@ -299,131 +324,142 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
         }
     }
 
-    if (!state.hasData) {
-        return <></>;
-    } else {
-        return (
-            <div className="background" ref = {backgroundRef}>
-                <Layout sectioned = {true}>
-                    <div className='searchConstraints'>
-                        <Search
-                            size='md'
-                            placeholder="Search by Title"
-                            defaultValue = ""
-                            labelText = "Title"
-                            onChange={(event) => {
-                                setSearchValue(event.target.value);
-                            }}
-                        />
-                    </div>
-                    <div className="filterByDates">
-                    <DatePicker
-                        datePickerType="range"
-                        onChange={(event) => {
-                            updateDates(event);
+
+    return (
+        <div className="background" ref = {backgroundRef}>
+            <Layout sectioned = {true}>
+                <div className='searchConstraints'>
+                    <Search
+                        size='md'
+                        placeholder="Search by Title"
+                        defaultValue = ""
+                        labelText = "Search by Title"
+                        onSelect={() => {
+                            console.log("clicked")
                         }}
-                    >
-                            <DatePickerInput
-                                id="date-picker-start"
-                                labelText="Start Date"
-                                placeholder="mm/dd/yyyy"
-                            />
+                        onChange={(event) => {
+                            if (event.target.value !== "") {
+                                setIsSearching(true);
+                                setSearchValue(event.target.value);
+                            } else {
+                                setIsSearching(false);
+                                setSearchValue("");
+                            }
+                        }}
+                    />
+                </div>
+                <div className="filterByDates">
+                <DatePicker
+                    datePickerType="range"
+                    onChange={(event) => {
+                        updateDates(event);
+                    }}
+                >
+                        <DatePickerInput
+                            id="date-picker-start"
+                            labelText="Start Date"
+                            placeholder="mm/dd/yyyy"
+                        />
 
-                            <DatePickerInput
-                                id="date-picker-end"
-                                labelText="End Date"
-                                onChange={function noRefCheck(){}}
-                                placeholder="mm/dd/yyyy"
-                            />
-                    </DatePicker>
-                    </div>
-                    <div className="cardGroup">
-                        {state.imgData.filter(x => x.nasaData.title.includes(String(searchValue))).map((image : imageData) => (
-                            <div className = "card">
-                                <MediaCard
-                                    title = {image.nasaData.title}
-                                    primaryAction={{
-                                        icon: image.showDescription ? CircleUpIcon : CircleDownIcon,
-                                        content: image.showDescription ? "Show less" : "Show more",
-                                        onAction: () => {
-                                            const dataset = state.imgData;
-        
-                                            const index = dataset.findIndex(x => x.id == image.id)
-                                    
-                                            dataset[index].showDescription = !image.showDescription;
-                                            
-                                            setState({
-                                                ...state,
-                                                imgData: dataset
-                                            })
-                                        },  
-                                    }}
-                                    size="small"
-                                    portrait={true}
-                                    description = {image.showDescription ? String(image.nasaData.explanation) : ""} 
-                                >
-                                    <div className="imageGrouping">
-                                        {image.nasaData.media_type == 'image' ?
-                                            <img className="image"src={String(image.nasaData.hdurl)}/> 
-                                            :
-                                            <iframe 
-                                                className="image" 
-                                                src={String(image.nasaData.url)}
-                                            /> 
-                                        }
-                                    </div>
-                                    {image.nasaData.date}
-                                </MediaCard>
+                        <DatePickerInput
+                            id="date-picker-end"
+                            labelText="End Date"
+                            onChange={function noRefCheck(){}}
+                            placeholder="mm/dd/yyyy"
+                        />
+                </DatePicker>
+                </div>
+                
+                <div className="cardGroup">
+                    {state.hasData && dataDisplayed.map((image : imageData) => (
+                        <div className = "card" style={{overflow: overflowHandler}}>
+                            <MediaCard
+                                title = {image.nasaData.title}
+                                primaryAction={{
+                                    icon: image.showDescription ? CircleUpIcon : CircleDownIcon,
+                                    content: image.showDescription ? "Show less" : "Show more",
+                                    onAction: () => {
+                                        const dataset = state.imgData;
+    
+                                        const index = dataset.findIndex(x => x.id == image.id)
                                 
-                                <div className="likesComponent" onClick={() => {
-                                    const index = state.imgData.indexOf(image);
-                                    if (image.liked) {
-
-                                        const liked = false;
-                                        const likes = image.likes - 1;
+                                        dataset[index].showDescription = !image.showDescription;
                                         
-                                        updateLikes(
-                                            {
-                                                id : image.id,
-                                                nasaData: image.nasaData,
-                                                showDescription : image.showDescription,
-                                                likes : likes,
-                                                liked : liked
-                                            }
-                                        )
+                                        setState({
+                                            ...state,
+                                            imgData: dataset
+                                        })
 
-                                    } else {
-                                        
-                                        const l1 = true;
-                                        const l2 = image.likes + 1;
-
-                                        
-                                        updateLikes(
-                                            {
-                                                id : image.id,
-                                                nasaData: image.nasaData,
-                                                showDescription : image.showDescription,
-                                                likes : l2,
-                                                liked : l1
-                                            }
-                                        )
-                                    }
-                                }}>
-                                    <div className="likedIcon">
-                                    {image.liked ? 
-                                        <FavoriteFilled fill="white" size="48"/>
+                                        if (overflowHandler === 'scroll') {
+                                            setOverflowHandler('hidden')
+                                        } else {
+                                            setOverflowHandler('scroll')
+                                        }
+                                    },  
+                                }}
+                                size="small"
+                                portrait={true}
+                                description = {image.showDescription ? String(image.nasaData.explanation) : ""} 
+                            >
+                                <div className="imageGrouping">
+                                    {image.nasaData.media_type == 'image' ?
+                                        <img className="image"src={String(image.nasaData.hdurl)}/> 
                                         :
-                                        <Favorite fill="white" size="48"/>
+                                        <iframe 
+                                            className="image" 
+                                            src={String(image.nasaData.url)}
+                                        /> 
                                     }
-                                    </div>
-                                    Likes: {image.likes}
                                 </div>
+                                <div className="date">{image.nasaData.date}</div>
+                            </MediaCard>
+                            
+                            <div className="likesComponent" onClick={() => {
+                                const index = state.imgData.indexOf(image);
+                                if (image.liked) {
+
+                                    const liked = false;
+                                    const likes = image.likes - 1;
+                                    
+                                    updateLikes(
+                                        {
+                                            id : image.id,
+                                            nasaData: image.nasaData,
+                                            showDescription : image.showDescription,
+                                            likes : likes,
+                                            liked : liked
+                                        }
+                                    )
+
+                                } else {
+                                    
+                                    const l1 = true;
+                                    const l2 = image.likes + 1;
+
+                                    
+                                    updateLikes(
+                                        {
+                                            id : image.id,
+                                            nasaData: image.nasaData,
+                                            showDescription : image.showDescription,
+                                            likes : l2,
+                                            liked : l1
+                                        }
+                                    )
+                                }
+                            }}>
+                                <div className="likedIcon">
+                                {image.liked ? 
+                                    <FavoriteFilled fill="white" size="48"/>
+                                    :
+                                    <Favorite fill="white" size="48"/>
+                                }
+                                </div>
+                                Likes: {image.likes}
                             </div>
-                        ))}
-                    </div>
-                </Layout>
-                <div className = "observer" ref={observerTarget}><br/></div>
-                <br/>
+                        </div>
+                    ))}
+                </div>
 
                 {loading && 
                     <RotatingLines
@@ -431,9 +467,12 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                         visible={true}
                     />
                 }
-            </div>
-        );
-    }
+            </Layout>
+            <div className = "observer" ref={observerTarget}><br/></div>
+            <br/>
+        </div>
+    );
+    
 }
 
 export default DisplayImages;
