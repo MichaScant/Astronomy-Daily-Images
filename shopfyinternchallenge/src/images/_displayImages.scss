@@ -6,15 +6,20 @@
     max-height: 100rem;
     overflow: scroll;
     border-radius: 2rem;
-    padding: 3rem;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
     display: flex;
     background-color: dimgray;
     justify-content: center;
     flex-wrap: wrap;
     flex-direction: row;
-    width: 80%;
     margin-left: auto;
     margin-right: auto;
+    width: 90%;
+}
+
+div#ccs-3-tabpanel-0 {
+    padding: 0;
 }
 
 .cds--date-picker-container {
