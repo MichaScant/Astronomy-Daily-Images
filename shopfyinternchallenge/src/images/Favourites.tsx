@@ -149,7 +149,7 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
                         :
                         
                         <div className="cardGroup">
-                            {dataDisplayed.filter(x => x.nasaData.title.includes(String(searchValue))).map((image : imageData) => (
+                            {dataDisplayed.map((image : imageData) => (
                                 <div className = "card">
                                     <MediaCard
                                         title = {image.nasaData.title}
