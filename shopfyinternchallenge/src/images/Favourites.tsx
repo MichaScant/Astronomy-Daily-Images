@@ -20,39 +20,60 @@ import {
     DatePickerInput,
 } from '@carbon/react'
 
-import { date, displayImagesProps, imageData } from "./displayImages";
+import { date, imageData, editLikes } from "./displayImages";
+
+export interface railsDataFormat {
+    id : number,
+    copyright:  String
+    date: String
+    explanation: String
+    hdurl: String
+    media_type: String
+    service_version: String
+    title: String
+    url: String
+  }
 
 
-const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
-
+const Favorites = ({favouritesSelected} : {favouritesSelected : boolean}) : JSX.Element => {
+    var _ = require('lodash');
+    
     const [searchValue, setSearchValue] = useState<String>("");
 
-    const [dataDisplayed, setDataDisplayed] = useState<imageData[]>(displayFavourites.favourites);
+    const [dataDisplayed, setDataDisplayed] = useState<imageData[]>([]);
 
-    const [endDate, setEndDate] = useState<date | undefined>(undefined);
+    const [displayFavourites, setDisplayFavourites] = useState<imageData[]>([]);
 
     const [startDate, setStartDate] = useState<date | undefined>(undefined);
     
+    const [endDate, setEndDate] = useState<date | undefined>(undefined);
+
+    const [overflowHandler, setOverflowHandler] = useState("hidden")
 
     useEffect(() => {
-        if (searchValue !== "" && displayFavourites.favourites.length > 0) {
+        if (favouritesSelected === true) {
+            getFavourites();
+        }
+    }, [favouritesSelected])
+
+    useEffect(() => {
+        if (searchValue !== "" && displayFavourites.length > 0) {
 
             const delaySearch = setTimeout(() => {
                 console.log("Searching for " + searchValue)
-                setDataDisplayed(dataDisplayed.filter((x: imageData) => x.nasaData.title.toLowerCase().includes(String(searchValue).toLowerCase())))
+                setDataDisplayed(displayFavourites.filter((x: imageData) => x.nasaData.title.toLowerCase().includes(String(searchValue).toLowerCase())))
             }, 1000)
             
             return () => clearTimeout(delaySearch)
         } else {
-            setDataDisplayed(displayFavourites.favourites);
+            setDataDisplayed(displayFavourites);
         }
-        
-    }, [displayFavourites.favourites, searchValue])
+    }, [displayFavourites, searchValue])
 
     useEffect(() => {     
         if (startDate !== undefined && endDate !== undefined) {
             //filters out nasa images between specified dates
-            const newFavourites = displayFavourites.favourites.filter((
+            const newFavourites = displayFavourites.filter((
                 data => (
                     new Date(String(data.nasaData.date)) >= new Date(startDate.year, startDate.month,startDate.day) &&
                     new Date(String(data.nasaData.date)) <= new Date(endDate.year, endDate.month, endDate.day)
@@ -64,31 +85,61 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
 
     }, [startDate, endDate])
 
+    const getFavourites = async() => {
+        const newFavouritesDisplay : imageData[] = [];
+
+        try {
+            const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept' : 'application/json'
+                    },
+                }
+            );
+            const test = await response.json();
+            
+            test.forEach((image : railsDataFormat) => {
+                
+                const newCardInfo = {
+                    id : image.id,
+                    showDescription: false,
+                    nasaData : image,
+                    liked : true,
+                    likes : 1
+                }
+
+                newFavouritesDisplay.push(newCardInfo)
+
+            })
+
+            setDisplayFavourites(newFavouritesDisplay);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
    const updateLikes = (props : imageData) => {
+    
         const datasetDisplayed = dataDisplayed;
-        const dataset = displayFavourites.favourites;
+        const dataset = displayFavourites;
 
         const indexDataDisplayed = datasetDisplayed.findIndex(x => x.id == props.id)
         const indexData = dataset.findIndex(x => x.id == props.id)
 
         datasetDisplayed[indexDataDisplayed].likes = props.likes;
-        datasetDisplayed[indexDataDisplayed].liked = props.liked;
-
         dataset[indexData].likes = props.likes;
+        
+        datasetDisplayed[indexDataDisplayed].liked = props.liked;
         dataset[indexData].liked = props.liked;
 
-        setDataDisplayed(datasetDisplayed);
-        displayFavourites.setFavourites(dataset);
+        setDataDisplayed([...datasetDisplayed]);
+        setDisplayFavourites([...dataset]);
         
-        //removes from favorites if unliked
-        const newFavourite = dataset[indexData];
-        const favouriteIndex = displayFavourites.favourites.findIndex(x => x.id == props.id);
-        if ((newFavourite != undefined && favouriteIndex !== -1)) {
-            const favouriteArray = displayFavourites.favourites;
-            favouriteArray.splice(favouriteIndex, 1);
-            displayFavourites.setFavourites([...favouriteArray]);
-        }
+        const newFavourite = dataset[indexData]
+        editLikes(newFavourite);
+        
     }
 
     const updateMaxStartDate = (event : Date[]) => {
@@ -141,7 +192,7 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
                         />
                 </DatePicker>
                 </div>
-                    {dataDisplayed.length === 0 ?
+                    {dataDisplayed !== undefined && dataDisplayed.length === 0 ?
                         <div className="noDisplayMsgHolder">
                             No Images Favourited
                         </div>
@@ -149,86 +200,92 @@ const Favorites = (displayFavourites : displayImagesProps) : JSX.Element => {
                         :
                         
                         <div className="cardGroup">
-                            {dataDisplayed.map((image : imageData) => (
-                                <div className = "card">
-                                    <MediaCard
-                                        title = {image.nasaData.title}
-                                        primaryAction={{
-                                            icon: image.showDescription ? CircleUpIcon : CircleDownIcon,
-                                            content: image.showDescription ? "Show less" : "Show more",
-                                            onAction: () => {
-                                                const dataset = dataDisplayed;
-            
-                                                const index = dataset.findIndex(x => x.id == image.id)
+                        {dataDisplayed.map((image : imageData) => (
+                        <div className = "card" style={{overflow: overflowHandler}}>
+                            <MediaCard
+                                title = {image.nasaData.title}
+                                primaryAction={{
+                                    icon: image.showDescription ? CircleUpIcon : CircleDownIcon,
+                                    content: image.showDescription ? "Show less" : "Show more",
+                                    onAction: () => {
+                                        const dataset = displayFavourites;
+    
+                                        const index = dataset.findIndex(x => x.id == image.id)
+                                
+                                        dataset[index].showDescription = !image.showDescription;
                                         
-                                                dataset[index].showDescription = !image.showDescription;
-                                                
-                                                setDataDisplayed(dataset)
-                                            },  
-                                        }}
-                                        size="small"
-                                        portrait={true}
-                                        description = {image.showDescription ? String(image.nasaData.explanation) : ""} 
-                                    >
-                                        <div className="imageGrouping">
-                                            {image.nasaData.media_type == 'image' ?
-                                                <img className="image"src={String(image.nasaData.hdurl)}/> 
-                                                :
-                                                <iframe 
-                                                    className="image" 
-                                                    src={String(image.nasaData.url)}
-                                                /> 
-                                            }
-                                        </div>
-                                        {image.nasaData.date}
-                                    </MediaCard>
-                                    
-                                    <div className="likesComponent" onClick={() => {
-                                        const index = dataDisplayed.indexOf(image);
-                                        if (image.liked) {
+                                        setDisplayFavourites(dataset)
 
-                                            const liked = false;
-                                            const likes = image.likes - 1;
-                                            
-                                            updateLikes(
-                                                {
-                                                    id : image.id,
-                                                    nasaData: image.nasaData,
-                                                    showDescription : image.showDescription,
-                                                    likes : likes,
-                                                    liked : liked
-                                                }
-                                            )
-
+                                        if (overflowHandler === 'scroll') {
+                                            setOverflowHandler('hidden')
                                         } else {
-                                            
-                                            const l1 = true;
-                                            const l2 = image.likes + 1;
-
-                                            
-                                            updateLikes(
-                                                {
-                                                    id : image.id,
-                                                    nasaData: image.nasaData,
-                                                    showDescription : image.showDescription,
-                                                    likes : l2,
-                                                    liked : l1
-                                                }
-                                            )
+                                            setOverflowHandler('scroll')
                                         }
-                                    }}>
-                                        <div className="likedIcon">
-                                        {image.liked ? 
-                                            <FavoriteFilled fill="white" size="48"/>
-                                            :
-                                            <Favorite fill="white" size="48"/>
-                                        }
-                                        </div>
-                                        Likes: {image.likes}
-                                    </div>
+                                    },  
+                                }}
+                                size="small"
+                                portrait={true}
+                                description = {image.showDescription ? String(image.nasaData.explanation) : ""} 
+                            >
+                                <div className="imageGrouping">
+                                    {image.nasaData.media_type == 'image' ?
+                                        <img className="image"src={String(image.nasaData.hdurl)}/> 
+                                        :
+                                        <iframe 
+                                            className="image" 
+                                            src={String(image.nasaData.url)}
+                                        /> 
+                                    }
                                 </div>
-                            ))}
+                                <div className="date">{image.nasaData.date}</div>
+                            </MediaCard>
+                            
+                            <div className="likesComponent" onClick={() => {
+                                const index = displayFavourites.indexOf(image);
+                                if (image.liked) {
+
+                                    const liked = false;
+                                    const likes = image.likes - 1;
+                                    
+                                    updateLikes(
+                                        {
+                                            id : image.id,
+                                            nasaData: image.nasaData,
+                                            showDescription : image.showDescription,
+                                            likes : likes,
+                                            liked : liked
+                                        }
+                                    )
+
+                                } else {
+                                    
+                                    const l1 = true;
+                                    const l2 = image.likes + 1;
+
+                                    
+                                    updateLikes(
+                                        {
+                                            id : image.id,
+                                            nasaData: image.nasaData,
+                                            showDescription : image.showDescription,
+                                            likes : l2,
+                                            liked : l1
+                                        }
+                                    )
+                                }
+                            }}>
+                                <div className="likedIcon">
+                                {image.liked ? 
+                                    <FavoriteFilled fill="white" size="48"/>
+                                    :
+                                    <Favorite fill="white" size="48"/>
+                                }
+                                </div>
+                                Likes: {image.likes}
+                            </div>
                         </div>
+                    ))}
+                </div>
                     }
             </Layout>
             <br/>

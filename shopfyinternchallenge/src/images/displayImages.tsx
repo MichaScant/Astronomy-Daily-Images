@@ -56,7 +56,82 @@ export interface date {
     year : number,
 }
 
-const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => {
+export const checkExistingFavourites = async(id : string) => {
+    try {
+        console.log("Checking ID: " + id);
+        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + id, 
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept' : 'application/json'
+                },
+            }
+        );
+        const test = await response.json();
+
+        return test
+    } catch (error) {
+        console.log(error);
+        return undefined
+    }
+}
+
+export const editLikes = async(image : imageData ) => {
+    try {
+        const response = await checkExistingFavourites(String(image.id));
+        
+        if (image != undefined && image.liked === true && response[0].data.id === undefined) {
+            storeData(image);
+        } else {
+            deleteData(image);
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const storeData = async(image : imageData) => {
+    const newJson = {
+        id: image.id,
+        ...image.nasaData
+    }
+    try {
+        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept' : 'application/json'
+                },
+                body: JSON.stringify(newJson)
+            }
+        );
+        const test = await response.json();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const deleteData = async(image : imageData) => {
+    try {
+        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + image.id, 
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept' : 'application/json'
+                }
+            }
+        );
+        const test = await response.json();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const DisplayImages = () : JSX.Element => {
     var _ = require('lodash');
     
     const [loading, setLoading] = useState<boolean>(false);
@@ -88,6 +163,8 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
     })
 
     const observerTarget = useRef<HTMLDivElement>(null);
+    
+    const [isError, setIsError] = useState(false);
 
     const fetchMoreData = async() => {
         const deductor = 5;
@@ -172,18 +249,23 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             const newData : nasaJsonData[] = await response.json();
 
             //creates general stucture for each nasa data to help track the amount of likes per picture and provide unique identifiers
-            const dataCardInfo : imageData[] = [];
+            var dataCardInfo : imageData[] = [];
             var counterId = state.imgData.length;
-            newData.forEach((image : nasaJsonData) => {
-                dataCardInfo.push({
+
+
+            newData.forEach(async (image : nasaJsonData) => {
+                var newCardInfo : imageData = {
                     id : counterId,
                     showDescription: false,
                     nasaData : image,
                     liked : false,
                     likes : 0
-                })
+                }
+                dataCardInfo.push(newCardInfo)
                 counterId += 1;
             })
+
+            dataCardInfo = await initializeLikes(dataCardInfo)
             if ( currentStartDate.day - 1 != 0) {
                 setEndDate({year : currentStartDate.year, month : currentStartDate.month, day : currentStartDate.day - 1});
             } else if (currentStartDate.month == 1) {
@@ -207,7 +289,6 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
     useEffect(() => {
         fetchMoreData();
     }, []);
-
 
     //Infinite loading: monitores when the user scrolls down all the way and loads more data if available
     //Availability is based on filters
@@ -257,6 +338,32 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
         }
     }, [loading, state, searchValue])
 
+    
+    const initializeLikes = async(dataCardInfo : imageData[]) => {
+
+        var ids = "";
+        dataCardInfo.forEach((entry) => {
+            if (dataCardInfo.indexOf(entry) !== dataCardInfo.length - 1) {
+                ids += String(entry.id) + ",";
+            } else {
+                ids += String(entry.id);
+            }
+        })
+
+        const response = await checkExistingFavourites(ids)
+                
+        response.forEach((entry : any) => {
+            if (entry.data.id !== undefined) {
+                const index = dataCardInfo.findIndex(i => i.id == entry.id)
+                dataCardInfo[index].liked = true;
+                dataCardInfo[index].likes += 1;
+            }
+        })
+
+        return dataCardInfo;
+
+    }
+
     const updateStartDate = (props : date) => {
         setStartDate({
             ...startDate,
@@ -286,16 +393,9 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
             imgData: dataset
         })
         
-        //removes from favoruites if image is unliked
         const newFavourite = dataset[index]
-        const favouriteIndex = displayFavourites.favourites.findIndex(x => x.id == props.id);
-        if (newFavourite != undefined && props.liked === true) {
-            displayFavourites.setFavourites([...displayFavourites.favourites, newFavourite]);
-        } else if ((newFavourite != undefined && favouriteIndex !== -1)) {
-            const favouriteArray = displayFavourites.favourites;
-            favouriteArray.splice(favouriteIndex, 1);
-            displayFavourites.setFavourites([...favouriteArray]);
-        }
+        editLikes(newFavourite);
+
     }
 
     const updateDates = (event : Date[]) => {
@@ -337,7 +437,7 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                         onSelect={() => {
                             console.log("clicked")
                         }}
-                        onChange={(event) => {
+                        onChange={(event : any) => {
                             if (event.target.value !== "") {
                                 setIsSearching(true);
                                 setSearchValue(event.target.value);
@@ -351,9 +451,16 @@ const DisplayImages = (displayFavourites : displayImagesProps) : JSX.Element => 
                 <div className="filterByDates">
                 <DatePicker
                     datePickerType="range"
-                    onChange={(event) => {
-                        updateDates(event);
+                    onChange={(event : any) => {
+                        if (event[0] >= new Date() || event[1] > new Date()) {
+                            setIsError(true)
+                        } else {
+                            setIsError(false)
+                            updateDates(event);
+                        }
                     }}
+                    invalid = {isError}
+                    invalidText = "Invalid Date Range entered"
                 >
                         <DatePickerInput
                             id="date-picker-start"
