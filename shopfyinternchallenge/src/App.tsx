@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useRef} from 'react';
 import './App.css';
 import DisplayImages from './images/displayImages';
 import { imageData } from './images/displayImages';
@@ -14,36 +14,36 @@ import {
 
 const App = () => {
   
-  const [favouriteArray, setFavourites] = useState<imageData[]>([])
+  const [favoruitesSelected, setFavouritesSelected] = useState<boolean>(false);
 
-  useEffect(() => {
-    console.log("Saved: " +  favouriteArray);
-}, [favouriteArray]);
+  const homeClick = () => {
+    setFavouritesSelected(false);
+  }
+
+  const favoritesClicked = () => {
+    setFavouritesSelected(true);
+  }
 
   return (
     <div className="App">
       <header className="App-header">
         <Tabs>
           <TabList aria-label='list of tabs'>
-              <Tab> Browsing Page </Tab>
-              <Tab> Favourites </Tab>
+              <Tab onClick={homeClick}> Browsing Page </Tab>
+              <Tab onClick={favoritesClicked}> Favourites </Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
               <h1>Welcome to Nasa's Astronomy showcase Version 2.0</h1>
               <h3 className='subTitle'>Presenting Nasa's Pictures of the day</h3>
 
-              <DisplayImages 
-                favourites = {favouriteArray}
-                setFavourites = {setFavourites}
-              />
+              <DisplayImages/>
               
             </TabPanel>
             <TabPanel>
               <h1>Favourites</h1>
               <Favorites 
-                favourites = {favouriteArray}
-                setFavourites = {setFavourites}
+                favouritesSelected = {favoruitesSelected}
               />
             </TabPanel>
           </TabPanels>
