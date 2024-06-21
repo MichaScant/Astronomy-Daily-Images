@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Internship-Shopify-Challenge/static/css/main.6cd84dae.css",
-    "main.js": "/Internship-Shopify-Challenge/static/js/main.e07ef470.js",
-    "static/js/453.ae315fe3.chunk.js": "/Internship-Shopify-Challenge/static/js/453.ae315fe3.chunk.js",
-    "index.html": "/Internship-Shopify-Challenge/index.html",
-    "main.6cd84dae.css.map": "/Internship-Shopify-Challenge/static/css/main.6cd84dae.css.map",
-    "main.e07ef470.js.map": "/Internship-Shopify-Challenge/static/js/main.e07ef470.js.map",
-    "453.ae315fe3.chunk.js.map": "/Internship-Shopify-Challenge/static/js/453.ae315fe3.chunk.js.map"
+    "main.css": "/Astronomy-Daily-Images/static/css/main.6cd84dae.css",
+    "main.js": "/Astronomy-Daily-Images/static/js/main.bd68d777.js",
+    "static/js/453.ae315fe3.chunk.js": "/Astronomy-Daily-Images/static/js/453.ae315fe3.chunk.js",
+    "index.html": "/Astronomy-Daily-Images/index.html",
+    "main.6cd84dae.css.map": "/Astronomy-Daily-Images/static/css/main.6cd84dae.css.map",
+    "main.bd68d777.js.map": "/Astronomy-Daily-Images/static/js/main.bd68d777.js.map",
+    "453.ae315fe3.chunk.js.map": "/Astronomy-Daily-Images/static/js/453.ae315fe3.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.6cd84dae.css",
-    "static/js/main.e07ef470.js"
+    "static/js/main.bd68d777.js"
   ]
 }
