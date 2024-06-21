@@ -59,7 +59,7 @@ export interface date {
 export const checkExistingFavourites = async(id : string) => {
     try {
         console.log("Checking ID: " + id);
-        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + id, 
+        const response = await fetch("https://apodnasaimgfavourites.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + id, 
             {
                 method: 'GET',
                 headers: {
@@ -98,7 +98,7 @@ export const storeData = async(image : imageData) => {
         ...image.nasaData
     }
     try {
-        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
+        const response = await fetch("https://apodnasaimgfavourites.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
             {
                 method: 'POST',
                 headers: {
@@ -116,7 +116,7 @@ export const storeData = async(image : imageData) => {
 
 export const deleteData = async(image : imageData) => {
     try {
-        const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + image.id, 
+        const response = await fetch("https://apodnasaimgfavourites.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data/" + image.id, 
             {
                 method: 'DELETE',
                 headers: {

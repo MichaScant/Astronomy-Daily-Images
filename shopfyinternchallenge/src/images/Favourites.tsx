@@ -89,7 +89,7 @@ const Favorites = ({favouritesSelected} : {favouritesSelected : boolean}) : JSX.
         const newFavouritesDisplay : imageData[] = [];
 
         try {
-            const response = await fetch("http://rails-backend-env.eba-wnt3ydia.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
+            const response = await fetch("https://apodnasaimgfavourites.ca-central-1.elasticbeanstalk.com/api/v1/nasa_data", 
                 {
                     method: 'GET',
                     headers: {
