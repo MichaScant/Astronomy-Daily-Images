@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Astronomy-Daily-Images/static/css/main.6cd84dae.css",
-    "main.js": "/Astronomy-Daily-Images/static/js/main.bd68d777.js",
+    "main.js": "/Astronomy-Daily-Images/static/js/main.13b95d02.js",
     "static/js/453.ae315fe3.chunk.js": "/Astronomy-Daily-Images/static/js/453.ae315fe3.chunk.js",
     "index.html": "/Astronomy-Daily-Images/index.html",
     "main.6cd84dae.css.map": "/Astronomy-Daily-Images/static/css/main.6cd84dae.css.map",
-    "main.bd68d777.js.map": "/Astronomy-Daily-Images/static/js/main.bd68d777.js.map",
+    "main.13b95d02.js.map": "/Astronomy-Daily-Images/static/js/main.13b95d02.js.map",
     "453.ae315fe3.chunk.js.map": "/Astronomy-Daily-Images/static/js/453.ae315fe3.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.6cd84dae.css",
-    "static/js/main.bd68d777.js"
+    "static/js/main.13b95d02.js"
   ]
 }
